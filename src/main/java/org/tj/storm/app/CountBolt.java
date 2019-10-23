@@ -38,7 +38,8 @@ public class CountBolt extends BaseBasicBolt {
         map.put( word, count );
 
         // 3）输出
-        collector.emit( new Values( word, map.get( word ) ) );
+        collector.emit( new Values( word, String.valueOf( map.get( word ).intValue() ) ) );
+       // collector.emit( new Values( word, word ) );
         System.out.println( word + ":" + count );
 
     }
