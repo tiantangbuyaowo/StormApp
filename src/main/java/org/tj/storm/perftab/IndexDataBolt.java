@@ -20,7 +20,7 @@ public class IndexDataBolt extends BaseBasicBolt {
      */
     @Override
     public void execute(Tuple input, BasicOutputCollector collector) {
-        String line = input.getString( 0 );
+        String line = input.getString( 4 );
         System.out.println( line );
 
 

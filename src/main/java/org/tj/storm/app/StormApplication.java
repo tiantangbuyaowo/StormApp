@@ -50,7 +50,7 @@ public class StormApplication implements CommandLineRunner {
 
         TopologyBuilder builder = new TopologyBuilder();
 
-        KafkaSpoutConfig.Builder<String, String> kafkaBuilder = KafkaSpoutConfig.builder( "node-1:9092,node-2:9092,node-3:9092", "testcheng" );
+        KafkaSpoutConfig.Builder<String, String> kafkaBuilder = KafkaSpoutConfig.builder( "192.168.30.128:9092", "testcheng" );
         //设置kafka属于哪个组
         kafkaBuilder.setGroupId( "testgroup" );
         //创建kafkaspoutConfig
