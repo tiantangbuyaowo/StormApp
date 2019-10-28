@@ -45,6 +45,7 @@ public class StormApplication implements CommandLineRunner {
         Config conf = new Config();
         conf.setDebug( true );
         Map<String, Object> hbaseConf = new HashMap<String, Object>();
+
         hbaseConf.put( "hbase.zookeeper.quorum", "192.168.30.128:2181" );
         conf.put( "hbase.conf", hbaseConf );
 
@@ -53,19 +54,36 @@ public class StormApplication implements CommandLineRunner {
         KafkaSpoutConfig.Builder<String, String> kafkaBuilder = KafkaSpoutConfig.builder( "192.168.30.128:9092", "testcheng" );
         //设置kafka属于哪个组
         kafkaBuilder.setGroupId( "testgroup" );
+
+
         //创建kafkaspoutConfig
         KafkaSpoutConfig<String, String> build = kafkaBuilder.build();
+        build.getKafkaProps().put( "enable.auto.commit", "true" );
         //通过kafkaspoutConfig获得kafkaspout
         KafkaSpout<String, String> kafkaSpout = new KafkaSpout<String, String>( build );
 
         //设置5个线程接收数据
-        builder.setSpout( "kafkaSpout", kafkaSpout, 5 );
+        builder.setSpout( "kafkaSpout", kafkaSpout, 10 );
 
-        builder.setBolt( "IndexDataBolt", new IndexDataBolt(), 2 ).shuffleGrouping( "kafkaSpout" );
+        builder.setBolt( "IndexDataBolt", new IndexDataBolt(), 10 ).shuffleGrouping( "kafkaSpout" );
+
+
+        SimpleHBaseMapper mapper = new SimpleHBaseMapper()
+                .withRowKeyField( "row" )
+                .withColumnFields( new Fields( "entity" ) )
+                .withColumnFields( new Fields( "index" ) )
+                .withColumnFields( new Fields( "value" ) )
+                .withColumnFamily( "p1" );
+
+        HBaseBolt hbaseBolt = new HBaseBolt( "perftab", mapper )
+                .withConfigKey( "hbase.conf" ).withBatchSize( 100 );//如果没有withConfigKey会报错
+        builder.setBolt( "HBaseBolt", hbaseBolt ).shuffleGrouping( "IndexDataBolt" );
+
 
         LocalCluster cluster = new LocalCluster();
         cluster.submitTopology( "firststorm", conf, builder.createTopology() );
     }
+
 
     public void wordCount() throws Exception {
         Config conf = new Config();
