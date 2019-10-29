@@ -84,18 +84,25 @@
             <artifactId>storm-kafka</artifactId>
             <version>1.1.3</version>
         </dependency>-->
+        <!-- https://mvnrepository.com/artifact/io.latent/storm-rabbitmq -->
         <dependency>
-            <groupId>org.apache.storm</groupId>
-            <artifactId>storm-kafka-client</artifactId>
-            <version>1.1.1</version>
+            <groupId>io.latent</groupId>
+            <artifactId>storm-rabbitmq</artifactId>
+            <version>1.0.0</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/rabbitmq-client/rabbitmq-client -->
         <dependency>
-            <groupId>org.apache.kafka</groupId>
-            <artifactId>kafka-clients</artifactId>
-            <version>0.10.0.0</version>
+            <groupId>rabbitmq-client</groupId>
+            <artifactId>rabbitmq-client</artifactId>
+            <version>1.7.0</version>
         </dependency>
 
 
+        <dependency>
+            <groupId>cn.hutool</groupId>
+            <artifactId>hutool-all</artifactId>
+            <version>4.6.6</version>
+        </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
