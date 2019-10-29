@@ -86,7 +86,7 @@
     </Appenders>
     <!--切换输出级别-->
     <Loggers>
-        <Root level="info">
+        <Root level="warn">
             <AppenderRef ref="Console"/>
            <!-- <AppenderRef ref="debug"/>-->
             <AppenderRef ref="info"/>

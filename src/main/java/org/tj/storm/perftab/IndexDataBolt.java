@@ -8,6 +8,7 @@ import org.apache.storm.topology.base.BaseBasicBolt;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
+import org.tj.storm.app.StormApplication;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -31,8 +32,10 @@ public class IndexDataBolt extends BaseBasicBolt {
      */
     @Override
     public void execute(Tuple input, BasicOutputCollector collector) {
+
         //获取kafka中的值
-        String line = input.getString( 4 );
+        String line = input.getString( 0 );
+        System.out.println( StormApplication.count.incrementAndGet() );
         if (StringUtils.isEmpty( line )) {
             return;
         }
@@ -48,8 +51,13 @@ public class IndexDataBolt extends BaseBasicBolt {
             if (datas.length != 10) {
                 System.out.println( datas );
             }
-            for (int i = 2; i < datas.length - 1; i++) {
-                collector.emit( new Values( time + "_" + entity + "_" + indexs[i - 2], entity, indexs[i - 2].toString(), datas[i] ) );
+
+            for (int i = 2; i < datas.length; i++) {
+                String identify = "-1";
+                if (i >= 5 && i <= 7) {
+                    identify = "/dev";
+                }
+                collector.emit( new Values( entity + "_" + indexs[i - 2] + "_" + identify + "_" + time, entity, indexs[i - 2].toString(), datas[i] ) );
             }
 
         } );

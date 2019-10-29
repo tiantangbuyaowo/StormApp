@@ -1,13 +1,16 @@
 package org.tj.storm.app;
 
 
+import io.latent.storm.rabbitmq.RabbitMQSpout;
+import io.latent.storm.rabbitmq.config.ConnectionConfig;
+import io.latent.storm.rabbitmq.config.ConsumerConfig;
+import io.latent.storm.rabbitmq.config.ConsumerConfigBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.storm.Config;
 import org.apache.storm.LocalCluster;
 import org.apache.storm.hbase.bolt.HBaseBolt;
 import org.apache.storm.hbase.bolt.mapper.SimpleHBaseMapper;
-import org.apache.storm.kafka.spout.KafkaSpout;
-import org.apache.storm.kafka.spout.KafkaSpoutConfig;
+import org.apache.storm.topology.IRichSpout;
 import org.apache.storm.topology.TopologyBuilder;
 import org.apache.storm.tuple.Fields;
 import org.slf4j.LoggerFactory;
@@ -18,6 +21,7 @@ import org.tj.storm.perftab.IndexDataBolt;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @SpringBootApplication
 @Slf4j
@@ -25,6 +29,7 @@ public class StormApplication implements CommandLineRunner {
 
     public static final org.slf4j.Logger logger = LoggerFactory.getLogger( StormApplication.class );
 
+    public static final AtomicInteger count = new AtomicInteger( 0 );
 
     public static void main(String[] args) {
         SpringApplication.run( StormApplication.class, args );
@@ -47,36 +52,35 @@ public class StormApplication implements CommandLineRunner {
         Map<String, Object> hbaseConf = new HashMap<String, Object>();
 
         hbaseConf.put( "hbase.zookeeper.quorum", "192.168.30.128:2181" );
+       /* hbaseConf.put( "storm.zookeeper.session.timeout", "60000" );
+        hbaseConf.put( "storm.zookeeper.retry.times", "9999" );*/
         conf.put( "hbase.conf", hbaseConf );
 
         TopologyBuilder builder = new TopologyBuilder();
 
-        KafkaSpoutConfig.Builder<String, String> kafkaBuilder = KafkaSpoutConfig.builder( "192.168.30.128:9092", "testcheng" );
-        //设置kafka属于哪个组
-        kafkaBuilder.setGroupId( "testgroup" );
+        RabbitMqScheme scheme = new RabbitMqScheme();
+        IRichSpout mpSpout = new RabbitMQSpout( scheme );
+        ConnectionConfig connectionConfig = new ConnectionConfig( "192.168.3.231", 5672, "admin", "admin", "/", 10 ); // host, port, username, password, virtualHost, heartBeat
+        ConsumerConfig spoutConfig = new ConsumerConfigBuilder().connection( connectionConfig )
+                .queue( "stormquene" )
+                .prefetch( 200 )
+                .requeueOnFail()
+                .build();
+        builder.setSpout( "mpSpout", mpSpout )
+                .addConfigurations( spoutConfig.asMap() )
+                .setMaxSpoutPending( 200 );
 
 
-        //创建kafkaspoutConfig
-        KafkaSpoutConfig<String, String> build = kafkaBuilder.build();
-        build.getKafkaProps().put( "enable.auto.commit", "true" );
-        //通过kafkaspoutConfig获得kafkaspout
-        KafkaSpout<String, String> kafkaSpout = new KafkaSpout<String, String>( build );
-
-        //设置5个线程接收数据
-        builder.setSpout( "kafkaSpout", kafkaSpout, 10 );
-
-        builder.setBolt( "IndexDataBolt", new IndexDataBolt(), 10 ).shuffleGrouping( "kafkaSpout" );
+        builder.setBolt( "IndexDataBolt", new IndexDataBolt(), 5 ).shuffleGrouping( "mpSpout" );
 
 
         SimpleHBaseMapper mapper = new SimpleHBaseMapper()
                 .withRowKeyField( "row" )
-                .withColumnFields( new Fields( "entity" ) )
-                .withColumnFields( new Fields( "index" ) )
-                .withColumnFields( new Fields( "value" ) )
+                .withColumnFields( new Fields( "entity", "index", "value" ) )
                 .withColumnFamily( "p1" );
 
         HBaseBolt hbaseBolt = new HBaseBolt( "perftab", mapper )
-                .withConfigKey( "hbase.conf" ).withBatchSize( 100 );//如果没有withConfigKey会报错
+                .withConfigKey( "hbase.conf" ).withBatchSize( 1000 );//如果没有withConfigKey会报错
         builder.setBolt( "HBaseBolt", hbaseBolt ).shuffleGrouping( "IndexDataBolt" );
 
 
@@ -106,7 +110,7 @@ public class StormApplication implements CommandLineRunner {
                 .withColumnFamily( "cf" );
 
         HBaseBolt hbaseBolt = new HBaseBolt( "wc", mapper )
-                .withConfigKey( "hbase.conf" ).withBatchSize( 1 );//如果没有withConfigKey会报错
+                .withConfigKey( "hbase.conf" ).withBatchSize( 2000 );//如果没有withConfigKey会报错
         builder.setBolt( "HBaseBolt", hbaseBolt ).shuffleGrouping( "CountBolt" );
 
 
