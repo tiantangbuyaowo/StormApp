@@ -102,7 +102,7 @@ public class HbaseTest {
         //查询数据
         //1. 根据rowKey查询
         long start = System.currentTimeMillis();
-        Map<String, Map<String, String>> result1 = hbaseService.getResultScanner( "perftab", "207831_211002300_-1_20191029000000", "207831_211002300_-1_20191030000000" );
+        Map<String, Map<String, String>> result1 = hbaseService.getResultScanner( "perftab", "207831_211002300_-1_20191030000000", "207831_211002300_-1_20191031000000" );
         System.out.println(System.currentTimeMillis() - start);
         System.out.println( "+++++++++++根据rowKey查询+++++++++++" );
         result1.forEach( (k, value) -> {

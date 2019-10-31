@@ -86,15 +86,24 @@
         </dependency>-->
         <!-- https://mvnrepository.com/artifact/io.latent/storm-rabbitmq -->
         <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-common</artifactId>
+            <version>2.8.5</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-hdfs</artifactId>
+            <version>2.8.5</version>
+        </dependency>
+        <dependency>
             <groupId>io.latent</groupId>
             <artifactId>storm-rabbitmq</artifactId>
             <version>1.0.0</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/rabbitmq-client/rabbitmq-client -->
         <dependency>
-            <groupId>rabbitmq-client</groupId>
-            <artifactId>rabbitmq-client</artifactId>
-            <version>1.7.0</version>
+            <groupId>com.rabbitmq</groupId>
+            <artifactId>amqp-client</artifactId>
+            <version>4.0.0</version>
         </dependency>
 
 

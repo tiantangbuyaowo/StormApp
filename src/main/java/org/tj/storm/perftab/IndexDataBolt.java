@@ -36,6 +36,7 @@ public class IndexDataBolt extends BaseBasicBolt {
         //获取kafka中的值
         String line = input.getString( 0 );
         System.out.println( StormApplication.count.incrementAndGet() );
+
         if (StringUtils.isEmpty( line )) {
             return;
         }

@@ -60,18 +60,19 @@ public class StormApplication implements CommandLineRunner {
 
         RabbitMqScheme scheme = new RabbitMqScheme();
         IRichSpout mpSpout = new RabbitMQSpout( scheme );
-        ConnectionConfig connectionConfig = new ConnectionConfig( "192.168.3.231", 5672, "admin", "admin", "/", 10 ); // host, port, username, password, virtualHost, heartBeat
+        ConnectionConfig connectionConfig = new ConnectionConfig( "192.168.3.231", 5672, "admin", "admin", "/", 5 ); // host, port, username, password, virtualHost, heartBeat
         ConsumerConfig spoutConfig = new ConsumerConfigBuilder().connection( connectionConfig )
                 .queue( "stormquene" )
-                .prefetch( 200 )
+                .prefetch( 500 )
                 .requeueOnFail()
                 .build();
-        builder.setSpout( "mpSpout", mpSpout )
+
+        builder.setSpout( "mpSpout", mpSpout, 5 )
                 .addConfigurations( spoutConfig.asMap() )
                 .setMaxSpoutPending( 200 );
 
 
-        builder.setBolt( "IndexDataBolt", new IndexDataBolt(), 5 ).shuffleGrouping( "mpSpout" );
+        builder.setBolt( "IndexDataBolt", new IndexDataBolt(), 10 ).shuffleGrouping( "mpSpout" );
 
 
         SimpleHBaseMapper mapper = new SimpleHBaseMapper()
@@ -80,8 +81,8 @@ public class StormApplication implements CommandLineRunner {
                 .withColumnFamily( "p1" );
 
         HBaseBolt hbaseBolt = new HBaseBolt( "perftab", mapper )
-                .withConfigKey( "hbase.conf" ).withBatchSize( 1000 );//如果没有withConfigKey会报错
-        builder.setBolt( "HBaseBolt", hbaseBolt ).shuffleGrouping( "IndexDataBolt" );
+                .withConfigKey( "hbase.conf" ).withBatchSize( 100 );//如果没有withConfigKey会报错
+        builder.setBolt( "HBaseBolt", hbaseBolt, 10 ).shuffleGrouping( "IndexDataBolt" );
 
 
         LocalCluster cluster = new LocalCluster();
@@ -116,6 +117,7 @@ public class StormApplication implements CommandLineRunner {
 
         LocalCluster cluster = new LocalCluster();
         cluster.submitTopology( "firststorm", conf, builder.createTopology() );
+
         // Utils.sleep( 30000 );
         // cluster.killTopology( "firststorm" );
         // cluster.shutdown();

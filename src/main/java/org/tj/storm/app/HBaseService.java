@@ -379,7 +379,7 @@ public class HBaseService {
                     if (rowKey == null) {
                         rowKey = Bytes.toString( cell.getRowArray(), cell.getRowOffset(), cell.getRowLength() );
                     }
-                    System.out.println(rowKey);
+                  //  System.out.println(rowKey);
                     columnMap.put( Bytes.toString( cell.getQualifierArray(), cell.getQualifierOffset(), cell.getQualifierLength() ), Bytes.toString( cell.getValueArray(), cell.getValueOffset(), cell.getValueLength() ) );
                 }
 
